@@ -1,23 +1,46 @@
-import React from 'react'
-import {Box} from './Ship'
-export function SalvagePart({id}) {
- if(id==='shield') return <Box size={[.73,.12,.73]} color="#b070b9"/>
- if(id==='reserve') return <Box size={[.42,.52,.42]} color="#ed9862"/>
- if(id==='frame') return <Box size={[.55,.38,.56]} color="#e8ad78"/>
- if(id==='power') return <><Box size={[.59,.12,.46]} color="#334a80"/><Box size={[.025,.035,.44]} at={[0,.07,0]} color="#8de4ff" glow={1}/></>
- if(id==='navigation') return <><Box size={[.44,.3,.48]} color="#43596b"/><Box size={[.26,.12,.035]} at={[0,.04,.25]} color="#9df5ba" glow={1}/></>
- return <mesh><cylinderGeometry args={id==='tank'?[.23,.23,.49,14]:[.14,.31,.38,16]}/><meshStandardMaterial color={id==='tank'?'#e5b263':'#e67459'} metalness={.58} roughness={.36}/></mesh>
+import React,{useMemo} from 'react'
+import {useTexture} from '@react-three/drei'
+import {CanvasTexture,SRGBColorSpace} from 'three'
+import {cuts,mounts,shipSheet,sheetSize} from './shipSprites'
+
+const cache=new WeakMap()
+function partTexture(image,id) {
+ let textures=cache.get(image)
+ if(!textures){textures=new Map();cache.set(image,textures)}
+ if(textures.has(id)) return textures.get(id)
+ const [x,y,w,h]=cuts[id]
+ const sx=image.width/sheetSize[0],sy=image.height/sheetSize[1]
+ const canvas=document.createElement('canvas')
+ canvas.width=w
+ canvas.height=h
+ canvas.getContext('2d').drawImage(image,x*sx,y*sy,w*sx,h*sy,0,0,w,h)
+ const texture=new CanvasTexture(canvas)
+ texture.colorSpace=SRGBColorSpace
+ textures.set(id,texture)
+ return texture
 }
-const mounts={engine:[0,.32,0],tank:[.71,1.02,0],power:[-.7,1.38,0],navigation:[0,1.7,0],reserve:[-.62,.77,0],shield:[0,1.45,0]}
+export function SalvagePart({id,width=.75,position=[0,0,0],order=0}) {
+ const sheet=useTexture(shipSheet)
+ const map=useMemo(()=>partTexture(sheet.image,id),[sheet,id])
+ const [,,w,h]=cuts[id]
+ return <sprite position={position} scale={[width,width*h/w,1]} renderOrder={order}>
+  <spriteMaterial map={map} transparent alphaTest={.04} depthWrite={false} toneMapped={false}/>
+ </sprite>
+}
 export default function PlanetRocket({ids}) {
- return <group position={[0,.16,0]}>
-  <Box size={[.98,.13,.98]} color="#3e5966"/>
-  {ids.includes('frame') && <>
-   <mesh position={[0,1.06,0]}><cylinderGeometry args={[.54,.88,.91,32]}/><meshStandardMaterial color="#dde6ec" metalness={.48} roughness={.36}/></mesh>
-   <mesh position={[0,.65,0]}><cylinderGeometry args={[.9,.83,.16,32]}/><meshStandardMaterial color="#db813f" metalness={.48} roughness={.34}/></mesh><mesh position={[0,1.21,.61]} rotation={[-.31,0,0]} scale={[.46,.25,.12]}><sphereGeometry args={[1,24,16]}/><meshStandardMaterial color="#13283f" metalness={.5} roughness={.22}/></mesh>
+ return <group position={[0,1.35,0]}>
+  {!ids.includes('frame') && <>
+   <group position={[-.62,-.55,0]} rotation={[0,0,.32]}><SalvagePart id="frame" width={1.35}/></group>
+   <group position={[.73,-.67,-.12]} rotation={[0,0,-.48]}><SalvagePart id="wing" width={1.32}/></group>
+   <group position={[.12,-.91,.24]} rotation={[0,0,.22]}><SalvagePart id="engine" width={.84}/></group>
+   <pointLight position={[0,-.48,.25]} intensity={2.1} distance={3} color="#ff563a"/>
   </>}
-  {Object.entries(mounts).map(([id,position])=>ids.includes(id)&&<group key={id} position={position} scale={id==='engine'?1.5:1}><SalvagePart id={id}/></group>)}
+  {mounts.map(([module,id,x,y,w],index)=>{
+   if(!ids.includes(module)) return null
+   const [,,sw,sh]=cuts[id]
+   return <SalvagePart key={id} id={id} width={w*.011} order={index+1}
+    position={[(x+w/2-200)*.011,(130-y-w*sh/sw/2)*.013,0]}/>
+  })}
  </group>
 }
-
 

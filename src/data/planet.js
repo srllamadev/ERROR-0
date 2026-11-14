@@ -6,7 +6,9 @@ export const zones=[
  {id:'power',name:'Puesto de energía',part:'Sistema eléctrico',x:-15,z:17,color:'#8de4ff'},
  {id:'navigation',name:'Depósito de navegación',part:'Computadora de navegación',x:22,z:13,color:'#9df5ba'},
  {id:'reserve',name:'Depósito de combustible',part:'Tanque auxiliar',x:4,z:-14,color:'#f5af71',extra:true},
- {id:'shield',name:'Restos del escudo',part:'Escudo térmico',x:16,z:17,color:'#e8a9ff',extra:true}
+ {id:'shield',name:'Restos del escudo',part:'Escudo térmico',x:16,z:17,color:'#e8a9ff',extra:true},
+ {id:'burnt',name:'Chatarra electrónica',part:'Batería quemada',x:-16,z:1,color:'#ef9292',scrap:true},
+ {id:'ruptured',name:'Restos presurizados',part:'Depósito agrietado',x:18,z:3,color:'#ef9292',scrap:true}
 ]
 export const rocks=[
  [-26,-17,2.6],[-17,-20,3.3],[-8,-19,2.9],[2,-21,3.5],[10,-21,2.6],[24,-19,3.3],
@@ -19,5 +21,7 @@ export function canWalk(x,z,r=.42) {
    zones.every(zone=>Math.hypot(x-zone.x,z-zone.z)>1.65+r)
 }
 export const pickupPosition=zone=>[zone.x,zone.z+2.85]
+
+
 
 

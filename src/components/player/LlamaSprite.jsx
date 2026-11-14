@@ -7,8 +7,9 @@ import {SalvagePart} from '../spaceship/PlanetRocket'
 const columns=[60,168,275,382,491,597,722,830,937,1044,1151,1258]
 const rows={idle:[82,[0,1,2,3]],right:[199,[0,1,2,3,4,5,6,7,8,9,10,11]],left:[199,[0,1,2,3,4,5,6,7,8,9,10,11]],front:[646,[0,2]],back:[646,[1,3,4,5]]}
 const cache=new WeakMap()
-function frames(image) {
- if(cache.has(image)) return cache.get(image)
+export function frames(image,index) {
+ const variants=cache.get(image) ?? []
+ if(variants[index]) return variants[index]
  const result=Object.fromEntries(Object.entries(rows).map(([name,[y,indices]])=>[name,indices.map(i=>{
   const canvas=document.createElement('canvas')
   const w=89,h=name==='idle'?91:87
@@ -22,19 +23,25 @@ function frames(image) {
   for(let p=0;p<data.length;p+=4) {
    const [r,g,b]=[data[p],data[p+1],data[p+2]]
    if(g-r>17 && b-r>30 && b-g<48) data[p+3]=0
+   else if(p/(4*w)>h*.54 && Math.max(r,g,b)-Math.min(r,g,b)<64) {
+    const light=(r+g+b)/765
+    const color=[[255,152,75],[74,171,255],[86,226,152]][index]
+    for(let c=0;c<3;c++) data[p+c]=color[c]*(.38+.62*light)
+   }
   }
   ctx.putImageData(pixels,0,0)
   const texture=new CanvasTexture(canvas)
   texture.colorSpace=SRGBColorSpace
   return texture
  })]))
- cache.set(image,result)
+ variants[index]=result
+ cache.set(image,variants)
  return result
 }
 const accents=['#ff9f69','#71caff','#83ecc2']
 export default function LlamaSprite({body,index=0,carrying}) {
  const sheet=useTexture(import.meta.env.BASE_URL+'llama-sheet.jpeg')
- const textures=useMemo(()=>frames(sheet.image),[sheet])
+ const textures=useMemo(()=>frames(sheet.image,index),[sheet,index])
  const sprite=useRef()
  useFrame(({clock})=>{
   const {horizontal=0,vertical=0,moving=false}=body.current.userData
@@ -51,4 +58,6 @@ export default function LlamaSprite({body,index=0,carrying}) {
   {carrying && <group position={[0,1.12,-.52]} renderOrder={-1}><SalvagePart id={carrying}/></group>}
  </group>
 }
+
+
 

@@ -1,7 +1,7 @@
 import React,{useEffect,useRef} from 'react'
 import {Canvas,useFrame} from '@react-three/fiber'
 import {CanvasTexture,SRGBColorSpace} from 'three'
-const crops={mars:[118,101,158],venus:[447,100,158],moon:[770,102,157]}
+
 function Globe({target}) {
  const planet=useRef()
  useFrame((_,dt)=>{planet.current.rotation.y+=dt*.55})
@@ -11,7 +11,7 @@ function Globe({target}) {
   const image=new Image()
   image.onload=()=>{
    if(!active)return
-   const [x,y,size]=crops[target.id]
+   const [x,y,size]=target.crop
    const source=document.createElement('canvas')
    source.width=source.height=size
    const input=source.getContext('2d')
@@ -44,3 +44,4 @@ function Globe({target}) {
 export default function DestinationGlobe({target}) {
  return <div className="destination-globe"><Canvas camera={{position:[0,0,4],fov:40}}><ambientLight intensity={1.2}/><directionalLight position={[-3,2,4]} intensity={2}/><Globe key={target.id} target={target}/></Canvas></div>
 }
+

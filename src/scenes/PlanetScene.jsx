@@ -7,6 +7,7 @@ import PlanetRocket,{SalvagePart} from '../components/spaceship/PlanetRocket'
 import {reviewDesign} from '../utils/planetEngineering'
 import LlamaSprite from '../components/player/LlamaSprite'
 import PlanetMinimap from '../components/ui/PlanetMinimap'
+import {PartArt,AssemblyArt,PlanetLaunch} from '../components/ui/AresArt'
 import GameCanvas from '../components/ui/GameCanvas'
 import {Box} from '../components/spaceship/Ship'
 import {canWalk,field,pickupPosition,rocks,zones as allZones} from '../data/planet'
@@ -61,20 +62,23 @@ function Crew({onNear,carrying,installed,paused,markers,zones}) {
  return <><LlamaSprite body={leader} carrying={carrying}/><LlamaSprite body={first} index={1}/><LlamaSprite body={second} index={2}/></>
 }
 
-function World({carrying,installed,stock,onNear,paused,markers,zones}) {
+function World({carrying,installed,stock,onNear,paused,markers,zones,destination}) {
+ const orbital=['jupiter','saturn','uranus'].includes(destination.id)
+ const spires=['cristalia','uranus','venus'].includes(destination.id)
  return <>
-  <color attach="background" args={['#6d505b']}/>
-  <fog attach="fog" args={['#805b60',28,73]}/>
+  <color attach="background" args={[destination.sky]}/>
+  <fog attach="fog" args={[destination.sky,26,73]}/>
   <hemisphereLight args={['#ffe0bf','#896576',2.25]}/>
-  <directionalLight position={[-11,18,9]} intensity={3.1} color="#ffd3a0"/>
-  <mesh rotation={[-Math.PI/2,0,0]}><planeGeometry args={[220,220]}/><meshStandardMaterial color="#a55748" roughness={1}/></mesh>
+  <directionalLight position={[-11,18,9]} intensity={3.1} color={destination.color}/>
+  <mesh rotation={[-Math.PI/2,0,0]}><planeGeometry args={orbital?[58,48]:[220,220]}/><meshStandardMaterial color={destination.ground} roughness={1}/></mesh>
+  {orbital && <gridHelper args={[48,24,destination.color,destination.sky]} position={[0,.022,0]}/>}
   {rocks.map(([x,z,r],i)=><group key={i} position={[x,0,z]}>
-   <mesh position={[0,r*.41,0]} rotation={[.12,i*.83,.17]} scale={[r*.94,r*.94,r*.78]}><dodecahedronGeometry args={[1,0]}/><meshStandardMaterial color={['#633a43','#8a504c','#77414a'][i%3]} flatShading/></mesh>
-   <mesh position={[r*.5,.44,-r*.37]} rotation={[0,i,0]} scale={[r*.39,r*.38,r*.43]}><icosahedronGeometry args={[1,0]}/><meshStandardMaterial color="#9c6354" flatShading/></mesh>
+   <mesh position={[0,r*.41,0]} rotation={[.12,i*.83,.17]} scale={[r*.94,r*(spires?1.65:.94),r*.78]}>{spires?<octahedronGeometry args={[1,0]}/>:<dodecahedronGeometry args={[1,0]}/>}<meshStandardMaterial color={i%2?destination.ground:destination.sky} flatShading/></mesh>
+   <mesh position={[r*.5,.44,-r*.37]} rotation={[0,i,0]} scale={[r*.39,r*.38,r*.43]}><icosahedronGeometry args={[1,0]}/><meshStandardMaterial color={destination.ground} flatShading/></mesh>
   </group>)}
   {Array.from({length:92},(_,i)=>{
    const x=Math.sin(i*45.72)*(field.x+6),z=Math.cos(i*19.37)*(field.z+4)
-   return <mesh key={i} position={[x,.018,z]} rotation={[-Math.PI/2,0,i]} scale={[.37+i%5*.14,.13+i%4*.11,1]}><circleGeometry args={[1,6]}/><meshBasicMaterial color={i%2?'#b76951':'#965346'}/></mesh>
+   return <mesh key={i} position={[x,.018,z]} rotation={[-Math.PI/2,0,i]} scale={[.37+i%5*.14,.13+i%4*.11,1]}><circleGeometry args={[1,6]}/><meshBasicMaterial color={i%2?destination.sky:destination.ground}/></mesh>
   })}
   {zones.map((zone,i)=>{
    const [x,z]=pickupPosition(zone)
@@ -91,7 +95,7 @@ function World({carrying,installed,stock,onNear,paused,markers,zones}) {
   <mesh position={[0,.07,0]}><cylinderGeometry args={[2.24,2.39,.14,32]}/><meshStandardMaterial color="#38474f" metalness={.54}/></mesh>
   <mesh position={[0,.15,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[1.91,1.98,40]}/><meshBasicMaterial color="#84eac9"/></mesh>
   <PlanetRocket ids={installed}/>
-  <Html center position={[0,1.35,0]} style={{pointerEvents:'none'}}><div className="station-tag">Campamento · Plataforma</div></Html>
+  <Html center position={[0,1.35,0]} style={{pointerEvents:'none'}}><div className="station-tag">{installed.includes('frame')?'Campamento · Plataforma':'Ares-IV · Dañada'}</div></Html>
   <Crew onNear={onNear} carrying={carrying} installed={stock} paused={paused} markers={markers} zones={zones}/>
  </>
 }
@@ -99,47 +103,77 @@ function World({carrying,installed,stock,onNear,paused,markers,zones}) {
 export default function PlanetScene({onExit,destination,pilot}) {
  const [near,setNear]=useState(null),[carrying,setCarrying]=useState(null),[installed,setInstalled]=useState([])
  const [stock,setStock]=useState([]),[design,setDesign]=useState(false)
+ const [boarding,setBoarding]=useState(false)
+ const greeted=useRef(false)
+ const [launch,setLaunch]=useState(false)
  const [oxygen,setOxygen]=useState(100)
  const dead=oxygen===0
  const atBase=near==='base'
  useEffect(()=>{
-  if(design||dead)return
+  if(boarding||design||dead||launch)return
   const timer=setInterval(()=>setOxygen(value=>atBase?Math.min(100,value+5):Math.max(0,value-1)),1000)
   return ()=>clearInterval(timer)
- },[atBase,design,dead])
+ },[atBase,boarding,design,dead,launch])
+ useEffect(()=>{
+  if(!atBase){greeted.current=false;return}
+  if(greeted.current||carrying||dead||design||launch)return
+  greeted.current=true
+  setBoarding(true)
+ },[atBase,carrying,dead,design,launch])
+ useEffect(()=>{
+  if(!boarding)return
+  const timer=setTimeout(()=>{setBoarding(false);setDesign(true)},1250)
+  return ()=>clearTimeout(timer)
+ },[boarding])
  const markers=useRef([])
  const zones=allZones.filter(zone=>!zone.extra||destination.extras.includes(zone.id))
+ const required=zones.filter(zone=>!zone.scrap)
+ const recovered=required.filter(zone=>stock.includes(zone.id)).length
+ const assembled=required.filter(zone=>installed.includes(zone.id)).length
+ const toggleModule=id=>{
+  if(stock.includes(id)) setInstalled(current=>current.includes(id)?current.filter(item=>item!==id):[...current,id])
+ }
  const review=reviewDesign(installed,destination)
  const item=zones.find(zone=>zone.id===near)
  const cargo=zones.find(zone=>zone.id===carrying)
- const action=near==='base'&&cargo?'Depositar '+cargo.part:near==='base'?'Diseñar nave':item&&!cargo?'Recuperar '+item.part:null
+ const action=near==='base'&&cargo?'Depositar '+cargo.part:near==='base'?'Entrar en la nave':item&&!cargo?'Recuperar '+item.part:null
  useEffect(()=>{
   function interact(event) {
-   if(event.key==='Escape') setDesign(false)
-   if(dead||design||event.key.toLowerCase()!=='e'||event.repeat||!action) return
-   if(near==='base' && carrying){setStock(previous=>[...previous,carrying]);setCarrying(null);setDesign(true)}
-   else if(near==='base') setDesign(true)
+   if(event.key==='Escape'){setDesign(false);setBoarding(false)}
+   if(dead||design||boarding||launch||event.key.toLowerCase()!=='e'||event.repeat||!action) return
+   if(near==='base' && carrying){setStock(previous=>[...previous,carrying]);setCarrying(null);greeted.current=true;setBoarding(true)}
+   else if(near==='base') setBoarding(true)
    else setCarrying(near)
   }
   window.addEventListener('keydown',interact)
   return ()=>window.removeEventListener('keydown',interact)
- },[action,near,carrying,design,dead])
+ },[action,near,carrying,design,dead,boarding,launch])
+ if(launch) return <PlanetLaunch destination={destination} failure={launch===true?null:launch} onRetry={()=>setLaunch(false)} onExit={onExit}/>
  return <>
-  <div className="stage"><GameCanvas><Canvas orthographic camera={{position:[10,13,20],zoom:43,far:130}} dpr={[1,1.5]}><World onNear={setNear} carrying={carrying} installed={installed} stock={stock} paused={design||dead} markers={markers} zones={zones}/></Canvas></GameCanvas></div>
-  <section className="objective planet-objective"><span className="kicker"><Mountain size={14}/> RUTA · {destination.name.toUpperCase()}</span><h2>Cuenca del impacto</h2><p>{review.ready?'Nave validada':stock.length===zones.length?'Completa el ensamblaje en la plataforma':cargo?'Regresa al campamento para depositar la pieza':'Explora los restos y recupera componentes'}</p></section>
-  <div className="survival-hud" aria-label="Soporte vital">{[['Energía',Math.min(100,Math.max(0,Math.round((review.watts+40)/1.8)))],['Oxígeno',oxygen],['Nave',Math.round(installed.length/zones.length*100)]].map(([label,value])=><label key={label}>{label} <b>{value}%</b><progress max="100" value={value}/></label>)}</div>
+  <div className="stage"><GameCanvas><Canvas orthographic camera={{position:[10,13,20],zoom:43,far:130}} dpr={[1,1.5]}><World onNear={setNear} carrying={carrying} installed={installed} stock={stock} paused={design||dead||boarding} markers={markers} zones={zones} destination={destination}/></Canvas></GameCanvas></div>
+  <section className="objective planet-objective"><span className="kicker"><Mountain size={14}/> RUTA · {destination.name.toUpperCase()}</span><h2>{destination.name} · {destination.terrain}</h2><p>{review.ready?'Nave validada':recovered===required.length?'Completa el ensamblaje en la plataforma':cargo?'Regresa al campamento para depositar la pieza':'Explora los restos y recupera componentes'}</p></section>
+  <div className="survival-hud" aria-label="Soporte vital">{[['Energía',Math.min(100,Math.max(0,Math.round((review.watts+40)/1.8)))],['Oxígeno',oxygen],['Nave',Math.round(assembled/required.length*100)]].map(([label,value])=><label key={label}>{label} <b>{value}%</b><progress max="100" value={value}/></label>)}</div>
   <PlanetMinimap markers={markers} zones={zones} stock={stock} carrying={carrying}/>
-  <aside className="planet-inventory"><span className="kicker"><Package size={14}/> {pilot}</span><b>{stock.length} / {zones.length} piezas recuperadas</b><p>{cargo?'Transportando: '+cargo.part:'Carga disponible'}</p></aside>
-  {action && !design && !dead && <div className="interact"><kbd>E</kbd><span><b>{action}</b><small>Presiona E para interactuar</small></span></div>}
+  <aside className="planet-inventory"><span className="kicker"><Package size={14}/> {pilot}</span><b>{recovered} / {required.length} piezas obligatorias</b><p>{cargo?'Transportando: '+cargo.part:'Carga disponible'}</p></aside>
+  {action && !design && !dead && !boarding && <div className="interact"><kbd>E</kbd><span><b>{action}</b><small>Presiona E para interactuar</small></span></div>}
   <footer className="controls"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Mover</span><span><kbd>E</kbd> Interactuar</span></footer>
   {dead && <div className="veil"><section className="modal"><h2>Oxígeno agotado</h2><p>La expedición terminó. El campamento repone oxígeno durante la exploración.</p><button className="primary" onClick={onExit}>Volver al menú</button></section></div>}
+  {boarding && <div className="boarding-film" role="status">
+
+   <div className="boarding-door boarding-left"/><div className="boarding-door boarding-right"/>
+   <div className="boarding-console"><span className="kicker">ARES-IV</span><b>Entrando a la nave</b><small>Iniciando diagnóstico de sistemas</small></div>
+
+  </div>}
   {design && <div className="veil"><section className="modal wide planet-workshop" role="dialog" aria-modal="true" aria-label="Diseño de la nave">
-   <header><div><span className="kicker">PLATAFORMA · {destination.name.toUpperCase()}</span><h2>Diseño de la Ares-IV</h2></div><button className="secondary" onClick={()=>setDesign(false)}>Cerrar</button></header>
-   <div className="builder"><div className="ship-preview"><GameCanvas><Canvas camera={{position:[3,2.5,4],fov:40}}><hemisphereLight intensity={2.6}/><directionalLight position={[2,4,3]} intensity={2}/><group position={[0,-.85,0]}><PlanetRocket ids={installed}/></group></Canvas></GameCanvas></div>
-    <div className="parts">{zones.map(zone=><button className={'part '+(installed.includes(zone.id)?'installed':'')} key={zone.id} disabled={!stock.includes(zone.id)} aria-pressed={installed.includes(zone.id)} onClick={()=>setInstalled(current=>current.includes(zone.id)?current.filter(id=>id!==zone.id):[...current,zone.id])}><b>{zone.part}</b><span>{installed.includes(zone.id)?'Retirar':stock.includes(zone.id)?'Instalar':'Por recuperar'}</span></button>)}</div>
+   <header><div><span className="kicker">PLATAFORMA · {destination.name.toUpperCase()}</span><h2>Diagnóstico de la Ares-IV</h2></div><button className="secondary" onClick={()=>setDesign(false)}>Cerrar</button></header>
+   <p aria-live="polite">{assembled===required.length?'Todos los módulos obligatorios están instalados.':`Faltan ${required.length-assembled} módulos obligatorios. Revisa cuáles quedan por recuperar o instalar.`}</p>
+   <div className="builder"><AssemblyArt ids={installed} labels={zones} stock={stock} onToggle={toggleModule}/>
+    <div className="parts">{zones.map(zone=><button className={'part '+(installed.includes(zone.id)?'installed':'')} key={zone.id} disabled={!stock.includes(zone.id)} aria-pressed={installed.includes(zone.id)} onClick={()=>toggleModule(zone.id)}><PartArt id={zone.id}/><b>{zone.part}<small>{zone.scrap?'Chatarra defectuosa':'Obligatoria para esta ruta'}</small></b><span>{installed.includes(zone.id)?'Retirar':stock.includes(zone.id)?'Instalar':'Por recuperar'}</span></button>)}</div>
    </div>
-   <details><summary>Planos de la cápsula y sus piezas</summary><div className="ares-blueprints"><img src={import.meta.env.BASE_URL+'ares.png'} alt="Vistas de la cápsula Ares-IV"/><img src={import.meta.env.BASE_URL+'ares-parts.png'} alt="Fuselaje, propulsores y electrónica de la Ares-IV"/></div></details>
    <p>Masa {review.mass} kg · Empuje {review.thrust} N · Combustible {review.fuel} kg · Margen eléctrico {review.watts} W</p>
+   {review.ready && <button className="primary" onClick={()=>setLaunch(true)}>Iniciar despegue</button>}
+   {!review.ready && installed.length>0 && <button className="secondary risk" onClick={()=>setLaunch(review.faults[0]??('Falló la prueba de vuelo: '+review.checks.filter(([,ok])=>!ok).map(([label])=>label).join(', ')+'.'))}>Simular despegue defectuoso</button>}
+   {review.faults.map(fault=><p key={fault} className="bad">{fault}</p>)}
    <h3>{review.ready?'Nave validada':'Revisión técnica'}</h3>
    <ul className="engineering-checks">{review.checks.map(([label,ok])=><li key={label} className={ok?'passed':'bad'}>{ok?'✓':'○'} {label}</li>)}</ul>
    <p className="fine">Valores ficticios. El ascenso requiere empuje superior a masa × 3,4 m/s².</p>
@@ -153,6 +187,14 @@ export default function PlanetScene({onExit,destination,pilot}) {
   <button className="secondary planet-exit" onClick={onExit}><ArrowLeft size={15}/> Menú</button>
  </>
 }
+
+
+
+
+
+
+
+
 
 
 

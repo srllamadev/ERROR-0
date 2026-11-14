@@ -1,6 +1,6 @@
 export const modules={
  frame:{mass:210},engine:{mass:120,thrust:2850},tank:{mass:175,fuel:110},
- power:{mass:55,watts:180},navigation:{mass:35,watts:-105},reserve:{mass:76,fuel:65},shield:{mass:58}
+ power:{mass:55,watts:180},navigation:{mass:35,watts:-105},reserve:{mass:76,fuel:65},shield:{mass:58},burnt:{mass:42,fault:"La batería quemada provocó un cortocircuito."},ruptured:{mass:95,fault:"El depósito agrietado perdió presión durante la ignición."}
 }
 export function reviewDesign(ids,destination) {
  const selected=Object.keys(modules).filter(id=>ids.includes(id))
@@ -9,6 +9,7 @@ export function reviewDesign(ids,destination) {
  const fuel=selected.reduce((sum,id)=>sum+(modules[id].fuel??0),0)
  const watts=selected.reduce((sum,id)=>sum+(modules[id].watts??0),0)-40
  const checks=[
+  ['Tanque principal integrado',selected.includes('tank')],
   ['Estructura integrada',selected.includes('frame')],
   ['Motor integrado',thrust>0],
   ['Combustible para ascenso',fuel>=(destination?.fuel??90)],
@@ -18,6 +19,8 @@ export function reviewDesign(ids,destination) {
   ...(destination?.extras.includes('reserve')?[['Tanque auxiliar integrado',selected.includes('reserve')]]:[]),
   ...(destination?.extras.includes('shield')?[['Escudo térmico integrado',selected.includes('shield')]]:[])
  ]
- return {mass,thrust,fuel,watts,checks,ready:checks.every(([,ok])=>ok)}
+ const faults=selected.flatMap(id=>modules[id].fault?[modules[id].fault]:[])
+ return {mass,thrust,fuel,watts,checks,faults,ready:faults.length===0 && checks.every(([,ok])=>ok)}
 }
+
 
