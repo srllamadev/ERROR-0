@@ -6,13 +6,9 @@ import GameCanvas from '../components/ui/GameCanvas'
 import LlamaSprite from '../components/player/LlamaSprite'
 import {Box} from '../components/spaceship/Ship'
 
-const stations=[
- {id:'engineering',name:'Ingeniería',x:-5.4},
- {id:'oxygen',name:'Brecha del casco',x:0},
- {id:'navigation',name:'Cabina',x:5.4}
-]
+import {canWalkDeck,deck,flightStations as stations} from '../data/flightDeck'
 
-const pilotSpawn=[0,0,2.7]
+const pilotSpawn=[0,0,3.85]
 function Pilot({paused,onNear}) {
  const body=useRef(),keys=useRef(new Set()),near=useRef(null)
  const vectors=useMemo(()=>({move:new Vector3(),up:new Vector3(0,1,0)}),[])
@@ -27,7 +23,7 @@ function Pilot({paused,onNear}) {
  },[paused])
  useFrame(()=>{
   const p=body.current.position
-  const id=stations.find(s=>Math.hypot(p.x-s.x,p.z+2.05)<2)?.id??null
+  const id=stations.find(s=>Math.hypot(p.x-s.x,p.z-s.z)<2)?.id??null
   if(id!==near.current){near.current=id;onNear(id)}
  })
  useFrame((_,dt)=>{
@@ -38,11 +34,10 @@ function Pilot({paused,onNear}) {
   if(paused)return
   const move=vectors.move.set(x,0,z).normalize().applyAxisAngle(vectors.up,Math.atan2(9,14))
   const step=Math.min(dt,.05)*5.7
-  const nx=Math.max(-7.1,Math.min(7.1,p.x+move.x*step))
-  const nz=Math.max(-3.08,Math.min(3.3,p.z+move.z*step))
-  const clear=(a,b)=>stations.every(s=>Math.abs(a-s.x)>1.25||b> -1.34)
-  if(clear(nx,p.z))p.x=nx
-  if(clear(p.x,nz))p.z=nz
+  const nx=p.x+move.x*step
+  const nz=p.z+move.z*step
+  if(canWalkDeck(nx,p.z))p.x=nx
+  if(canWalkDeck(p.x,nz))p.z=nz
  })
  return <LlamaSprite body={body} spawn={pilotSpawn}/>
 }
@@ -50,7 +45,7 @@ function Pilot({paused,onNear}) {
 function Impact({time}) {
  const rock=useRef()
  useFrame(()=>{
-  rock.current.position.set(-2+(6-time)*1.8,2.2+(6-time)*.72,-3.55-(6-time)*1.5)
+  rock.current.position.set(-2+(6-time)*1.8,2.2+(6-time)*.72,-5.55-(6-time)*1.5)
   rock.current.rotation.y=time*1.8
  })
  return <mesh ref={rock} visible={time>=2&&time<6}><dodecahedronGeometry args={[.75,0]}/><meshStandardMaterial color="#957b72" flatShading/></mesh>
@@ -59,7 +54,7 @@ function Impact({time}) {
 function Interior({paused,onNear,time,alarms}) {
  useFrame(({camera,size})=>{
   const impact=time>=6&&time<6.8?Math.sin(time*85)*.22:0
-  camera.zoom=Math.min(size.width/17.9,size.height/12.1)
+  camera.zoom=Math.min(size.width/29.5,size.height/16.5)
   camera.updateProjectionMatrix()
   camera.position.set(9+impact,12+impact,14)
   camera.lookAt(0,.55,0)
@@ -69,30 +64,47 @@ function Interior({paused,onNear,time,alarms}) {
   <Stars radius={55} depth={20} count={950} factor={2}/>
   <hemisphereLight args={['#d9eeff','#283047',2]}/>
   <directionalLight position={[3,8,5]} intensity={2.3} color="#fff0db"/>
-  <Box size={[15.8,.38,8]} at={[0,-.21,0]} color="#282624"/>
-  {Array.from({length:64},(_,i)=><Box key={i} size={[1.91,.06,.94]} at={[(i%8-3.5)*1.95,0,(Math.floor(i/8)-3.5)*.98]} color={i%3?'#978777':'#ada08d'}/>)}
-  <Box size={[.28,2.75,8]} at={[-7.8,1.35,0]} color="#54483e"/>
-  <Box size={[15.8,2.75,.25]} at={[0,1.35,-4]} color="#685446"/>
-  <Box size={[15.6,.045,.09]} at={[0,.047,3.92]} color="#67d9f2" glow={1.2}/>
-  {Array.from({length:8},(_,i)=><Box key={i} size={[1.45,.075,.08]} at={[(i-3.5)*1.94,2.49,-3.82]} color={alarms.engineering?'#ff7763':'#86dfff'} glow={1.25}/>)}
-  {Array.from({length:8},(_,i)=><group key={i} position={[(i-3.5)*1.95,0,-3.82]}>
+  <Box size={[25.5,.38,11.2]} at={[0,-.21,-.5]} color="#282624"/>
+  {Array.from({length:88},(_,i)=><Box key={i} size={[2.24,.06,.96]} at={[(i%11-5)*2.29,0,Math.floor(i/11)*1.38-5.3]} color={i%3?'#a59681':'#b6a58e'}/>)}
+  <Box size={[.28,2.55,11]} at={[-deck.halfWidth,1.25,-.5]} color="#675044"/>
+  <Box size={[25.4,2.55,.25]} at={[0,1.25,deck.back]} color="#685446"/>
+  <Box size={[25.3,.045,.09]} at={[0,.055,4.92]} color="#67d9f2" glow={1.2}/>
+  <Box size={[25,.018,1.35]} at={[0,.047,4.02]} color="#655749"/>
+  {Array.from({length:13},(_,i)=><group key={i} position={[(i-6)*1.94,0,-5.81]}>
    {[.48,1.13,1.78].map(y=><Box key={y} size={[1.78,.54,.16]} at={[0,y,0]} color={i%2?'#b0a08c':'#c8b6a0'}/>)}
-   <Box size={[.14,2.34,.27]} at={[-.94,1.2,.02]} color="#a86b45"/>
+   <Box size={[.14,2.24,.27]} at={[-.94,1.14,.02]} color="#a86b45"/>
+   <Box size={[1.43,.075,.08]} at={[0,2.25,.15]} color={alarms.engineering?'#ff7763':'#ffddaf'} glow={1.25}/>
   </group>)}
-  {[-2.75,2.75].map(x=><group key={x} position={[x,.04,0]}>
-   <Box size={[.12,.05,7.62]} color="#593d31"/>
-   {[-2.8,2.8].map(z=><Box key={z} size={[.26,.055,1.1]} at={[0,0,z]} color="#daa264"/>)}
-  </group>)}
-  <group position={[-5.4,1.86,-3.46]} rotation={[0,0,Math.PI/2]}>
+  {[-deck.divider,deck.divider].map(x=>{
+   const start=deck.doorCenter-deck.doorWidth/2,end=deck.doorCenter+deck.doorWidth/2
+   return <group key={x} position={[x,0,0]}>
+    <Box size={[.28,.86,start-deck.back]} at={[0,.43,(start+deck.back)/2]} color="#a68168"/>
+    <Box size={[.28,.86,3.15-end]} at={[0,.43,(end+3.15)/2]} color="#a68168"/>
+    {[start,end].map(z=><Box key={z} size={[.42,2.18,.22]} at={[0,1.09,z]} color="#a86b45"/>)}
+    <Box size={[.42,.21,deck.doorWidth+.22]} at={[0,2.18,deck.doorCenter]} color="#a86b45"/>
+    <Box size={[.48,.04,deck.doorWidth]} at={[0,.055,deck.doorCenter]} color="#85e4d7" glow={.75}/>
+   </group>
+  })}
+  <group position={[0,0,-4.98]}>
+   {[-2.5,2.36].map(x=><group key={x} position={[x,0,0]}>
+    <Box size={[1.04,1.57,.61]} at={[0,.81,0]} color="#b4a28e"/>
+    <Box size={[.071,.32,.06]} at={[.26,1,.34]} color="#544c42"/>
+   </group>)}
+  </group>
+  <group position={[8.4,0,-1.76]}>
+   <Box size={[.91,.25,.77]} at={[0,.51,0]} color="#a66943"/>
+   <Box size={[.89,.76,.18]} at={[0,.83,.32]} color="#ba8052"/>
+  </group>
+  <group position={[-8.4,1.86,-5.23]} rotation={[0,0,Math.PI/2]}>
    <mesh><cylinderGeometry args={[.34,.34,2.1,18]}/><meshStandardMaterial color="#aaa092" metalness={.65} roughness={.37}/></mesh>
    {[-.77,0,.77].map(y=><mesh key={y} position={[0,y,0]}><cylinderGeometry args={[.42,.42,.13,18]}/><meshStandardMaterial color="#8f5c40" metalness={.5}/></mesh>)}
   </group>
-  <group position={[0,1,-3.39]}>
+  <group position={[0,1,-5.11]}>
    {[-.86,.86].map(x=><mesh key={x} position={[x,0,0]}><capsuleGeometry args={[.25,1.05,4,12]}/><meshStandardMaterial color="#587c75" metalness={.5} roughness={.36}/></mesh>)}
   </group>
-  <Box size={[2.65,.9,.12]} at={[5.4,1.99,-3.53]} color="#182c38"/>
-  <Box size={[2.35,.66,.06]} at={[5.4,1.99,-3.45]} color={alarms.navigation?'#834039':'#285b66'} glow={.5}/>
-  {stations.map((station,i)=><group key={station.id} position={[station.x,0,-2.22]}>
+  <Box size={[2.65,.9,.12]} at={[8.4,1.99,-5.55]} color="#182c38"/>
+  <Box size={[2.35,.66,.06]} at={[8.4,1.99,-5.47]} color={alarms.navigation?'#834039':'#285b66'} glow={.5}/>
+  {stations.map((station,i)=><group key={station.id} position={[station.x,0,station.z]}>
    <Box size={[2.05,.28,1.13]} at={[0,.18,0]} color="#263746"/>
    <Box size={[1.55,.67,.79]} at={[0,.62,0]} color="#807466"/>
    <Box size={[1.9,.16,1.04]} at={[0,.98,0]} color="#dfcbb5"/>
@@ -103,7 +115,7 @@ function Interior({paused,onNear,time,alarms}) {
     <div className="station-tag" style={{'--signal':alarms[station.id]?'#ff8d7b':'#82ecdf'}}><b>{String(i+1).padStart(2,'0')}</b>{station.name}{alarms[station.id]?' · AVERÍA':''}</div>
    </Html>
   </group>)}
-  {time>=6 && <group position={[0,1.4,-3.82]} rotation={[0,0,.44]}>
+  {time>=6 && <group position={[0,1.4,-5.8]} rotation={[0,0,.44]}>
    <Box size={[.18,1.05,.1]} color={alarms.oxygen?'#140b17':'#6bb4ba'}/>
    <Box size={[.7,.12,.13]} at={[.12,.15,.052]} color={alarms.oxygen?'#e76049':'#89dfcb'} glow={.7}/>
   </group>}
@@ -115,5 +127,7 @@ function Interior({paused,onNear,time,alarms}) {
 export default function FlightInterior(props) {
  return <div className="flight-interior"><GameCanvas><Canvas orthographic camera={{zoom:54,position:[9,12,14],far:120}} dpr={[1,1.5]}><Interior {...props}/></Canvas></GameCanvas></div>
 }
+
+
 
 

@@ -126,7 +126,7 @@ export default function PlanetScene({onExit,destination,pilot}) {
  },[atBase,carrying,dead,design,launch])
  useEffect(()=>{
   if(!boarding)return
-  const timer=setTimeout(()=>{setBoarding(false);setDesign(true)},1250)
+  const timer=setTimeout(()=>{setBoarding(false);setDesign(true)},2600)
   return ()=>clearTimeout(timer)
  },[boarding])
  const markers=useRef([])
@@ -164,10 +164,14 @@ export default function PlanetScene({onExit,destination,pilot}) {
   <footer className="controls"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Mover</span><span><kbd>E</kbd> Interactuar</span></footer>
   {dead && <div className="veil"><section className="modal"><h2>Oxígeno agotado</h2><p>La expedición terminó. El campamento repone oxígeno durante la exploración.</p><button className="primary" onClick={onExit}>Volver al menú</button></section></div>}
   {boarding && <div className="boarding-film" role="status">
-
-   <div className="boarding-door boarding-left" aria-hidden="true"><i/></div><div className="boarding-door boarding-right" aria-hidden="true"><i/></div>
-   <div className="boarding-console"><span className="kicker">ARES-IV</span><b>Entrando a la nave</b><small>Iniciando diagnóstico de sistemas</small></div>
-
+   <div className="boarding-frame">
+    <div className="boarding-opening">
+     <div className="boarding-console"><span className="kicker">ARES-IV</span><b>Entrando a la nave</b><small>Iniciando diagnóstico de sistemas</small></div>
+     <div className="boarding-door boarding-left" aria-hidden="true"><i/></div>
+     <div className="boarding-door boarding-right" aria-hidden="true"><i/></div>
+    </div>
+    <div className="boarding-beacon" aria-hidden="true"/>
+   </div>
   </div>}
   {design && <div className="veil"><section className="modal wide planet-workshop" role="dialog" aria-modal="true" aria-label="Diseño de la nave">
    <header><div><span className="kicker">PLATAFORMA · {destination.name.toUpperCase()}</span><h2>Diagnóstico de la Ares-IV</h2></div><button className="secondary" onClick={()=>setDesign(false)}>Cerrar</button></header>
@@ -193,6 +197,8 @@ export default function PlanetScene({onExit,destination,pilot}) {
   <button className="secondary planet-exit" onClick={onExit}><ArrowLeft size={15}/> Menú</button>
  </>
 }
+
+
 
 
 

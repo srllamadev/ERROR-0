@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react'
 import {advanceFlight,beginFlight,flightResult} from '../utils/flight'
 
+import CourseChart from '../components/ui/CourseChart'
 import HullPatch from '../components/ui/HullPatch'
 import WirePanel from '../components/ui/WirePanel'
 import FlightInterior from './FlightInterior'
@@ -12,7 +13,6 @@ export default function FlightLevel({profile,pilot,onExit,testMode=false}) {
  const [panel,setPanel]=useState(null)
  const [isolated,setIsolated]=useState(false)
  const [links,setLinks]=useState([])
- const [heading,setHeading]=useState(20)
 
  const result=flightResult(state)
 
@@ -33,7 +33,7 @@ export default function FlightLevel({profile,pilot,onExit,testMode=false}) {
   window.addEventListener('keydown',down)
   return ()=>window.removeEventListener('keydown',down)
  },[room,result,panel])
- const restart=()=>{setAttempt(current=>current+1);setState(beginFlight(profile));setRoom(null);setPanel(null);setIsolated(false);setLinks([]);setHeading(20)}
+ const restart=()=>{setAttempt(current=>current+1);setState(beginFlight(profile));setRoom(null);setPanel(null);setIsolated(false);setLinks([])}
  const blackout=state.time>=6&&!state.circuit
  const leaking=state.time>=15&&!state.seal
  const drift=state.time>=23&&!state.course
@@ -65,12 +65,16 @@ export default function FlightLevel({profile,pilot,onExit,testMode=false}) {
       onRestore={()=>setState(current=>({...current,circuit:true,support:false}))}/>
       <button className="secondary" onClick={()=>setState(current=>({...current,support:!current.support}))}>{state.support?'Devolver energía a navegación':'Priorizar soporte vital'}</button></>}   </>}
    {panel==='oxygen'&&<><h3>Brecha del casco</h3><p>{leaking?'El impacto abrió una brecha. Coloca el parche de emergencia para detener la fuga.':state.seal?'Casco sellado.':'La fuga todavía no se ha activado.'}</p>{leaking && <HullPatch onSeal={()=>setState(current=>({...current,seal:true}))}/>}</>}
-   {panel==='navigation'&&<><h3>Corrección de rumbo</h3><p>{canSteer?'Alinea el rumbo a 60° y consume 20 kg de combustible.':'Navegación sin alimentación. Revisa ingeniería.'}</p><label>Rumbo {heading}° <input type="range" min="0" max="100" step="5" value={heading} onChange={e=>setHeading(Number(e.target.value))}/></label><button className="primary" disabled={!drift||!canSteer||heading!==60||state.fuel<20} onClick={()=>setState(current=>({...current,course:true,fuel:current.fuel-20}))}>Ejecutar maniobra</button></>}
+   {panel==='navigation'&&<><h3>Corrección de rumbo</h3>
+    {state.course?<p>Rumbo a la Tierra recuperado.</p>:!canSteer?<p>Navegación sin alimentación. Revisa ingeniería.</p>:!drift?<p>Rumbo estable.</p>:<CourseChart canConfirm={state.fuel>=20}
+     onConfirm={()=>setState(current=>current.course||current.fuel<20?current:{...current,course:true,fuel:current.fuel-20})}/>}
+   </>}
    
   </div>}
   {result&&<div className="veil"><section className="modal"><h2>{result==='success'?'Nivel 2 completado':'Viaje interrumpido'}</h2><p>{result==='success'?'Rumbo a la Tierra recuperado. Próxima etapa: llegada a la Tierra.':result}</p><p>Oxígeno {Math.ceil(state.oxygen)}% · Combustible {state.fuel} kg · Averías resueltas {[state.circuit,state.seal,state.course].filter(Boolean).length}/3</p><button className="primary" onClick={result==='success'?onExit:restart}>{result==='success'?'Volver al menú':'Reintentar nivel'}</button></section></div>}
  </section>
 }
+
 
 
 
