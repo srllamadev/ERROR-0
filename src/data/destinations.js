@@ -11,9 +11,7 @@ export const destinations=catalog.map(([id,name,kind,distance,fuel,tier,color,gr
 export const formatDistance=value=>new Intl.NumberFormat('es-BO').format(Math.round(value))+' km'
 export const horizonsEpoch='14 nov 2026 · 00:00 TDB'
 const targetCodes={mars:499,venus:299,jupiter:599,saturn:699,uranus:799}
-export function horizonsQuery(id) {
- return targetCodes[id] ? 'https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='+targetCodes[id]+'&CENTER=500%40399&EPHEM_TYPE=VECTORS&TLIST=2461358.5&OUT_UNITS=KM-S&VEC_TABLE=3&CSV_FORMAT=YES' : null
+export function horizonsQuery(id, julianDate=2461358.5,timeScale='TDB') {
+ return targetCodes[id] ? 'https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='+targetCodes[id]+'&CENTER=500%40399&EPHEM_TYPE=VECTORS&TLIST='+encodeURIComponent(julianDate)+'&TIME_TYPE='+encodeURIComponent(timeScale)+'&OUT_UNITS=KM-S&VEC_TABLE=3&CSV_FORMAT=YES' : null
 }
-
-
 
