@@ -239,3 +239,41 @@ progress{width:100%;height:9px;accent-color:#69e5fc}
 .flight-diagnostics .flight-monitor.fault{background:#493450;color:#ffb096}
 .flight-diagnostics .flight-monitor i{box-shadow:none}
 @media(max-width:700px){.flight-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.flight-interior{grid-column:1/-1;grid-row:2}.flight-diagnostics{grid-template-columns:1fr;grid-column:2;grid-row:1}.flight-map{grid-column:1;grid-row:1}}
+.game.home{background:#07111f url(/mission-menu.png) center/cover no-repeat}
+.home .stage,.home::after{display:none}
+.home .topbar{z-index:3;background:#07111fee}
+.ares-menu{position:absolute;inset:0;overflow:hidden}
+.ares-menu-video,.ares-menu::after{position:absolute;inset:0;width:100%;height:100%}
+.ares-menu-video{object-fit:cover;object-position:center}
+.ares-menu::after{content:"";background:linear-gradient(90deg,#04091328 20%,#03081270 58%,#030812aa),linear-gradient(0deg,#03081289,transparent 40%);pointer-events:none}
+.ares-menu-content{position:absolute;z-index:1;inset:80px 5.7vw 0 auto;width:min(52vw,700px);display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:clamp(8px,2vh,17px);overflow:auto}
+.ares-menu-content h1{margin:0;color:#f3ffff;font-size:clamp(34px,7.2vw,110px);line-height:1;letter-spacing:-.075em;text-shadow:0 0 26px #20cfe9b0;white-space:nowrap}
+.ares-menu-content h1 span{color:#27d8ef}
+.ares-menu-content nav{width:min(100%,390px);display:grid;gap:clamp(7px,2vh,18px)}
+.ares-menu-content nav button{min-height:clamp(36px,9vh,74px);border:1px solid #45adbf;background:#0a1727ed;color:#f3fcff;font:700 clamp(11px,1.37vw,18px) Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;transition:background .15s,border-color .15s}
+.ares-menu-content nav button:is(:hover,:focus-visible){background:#153848;border-color:#b8f7ff;outline-offset:3px}
+.ares-test{border:0;background:#0a1727df;color:#dcf4ff;border-radius:4px;padding:6px 12px;font-size:12px}
+@media(max-width:650px){.ares-menu-content{width:calc(100% - 32px);right:16px;inset-block-start:105px;gap:9px}.ares-menu-content nav{width:min(72vw,300px)}.ares-menu-content h1{font-size:clamp(31px,10vw,58px)}}
+@media(prefers-reduced-motion:reduce){.ares-menu-content nav button{transition:none}}
+
+.ares-video-play{position:absolute;z-index:2;bottom:16px;left:16px;padding:8px 12px;border:1px solid #75aec7;border-radius:4px;background:#0a1727;color:#f3fcff}
+
+.game.profile{background:#071524}
+.profile .topbar,.profile .stage{display:none}
+.mission-profile{position:absolute;inset:0;isolation:isolate;overflow:auto;display:flex;flex-direction:column;align-items:flex-start;padding:clamp(20px,2.5vw,44px);color:#f0fcff}
+.mission-profile::before{content:"";position:fixed;inset:-8px;z-index:-1;background:linear-gradient(100deg,#061927d9,#06152baa),url(/mission-menu.png) center/cover no-repeat;filter:blur(6px)}
+.mission-profile h1{margin:12px 0 24px;font-family:"Trebuchet MS",Arial,sans-serif;font-size:clamp(30px,4.2vw,68px);line-height:1.05;letter-spacing:-.025em;text-shadow:0 0 14px #31d5e681}
+.mission-profile .kicker{color:#67e8ec;letter-spacing:.19em}
+.mission-profile .crew-cards{width:min(100%,860px);gap:clamp(8px,1.75vw,28px)}
+.mission-profile .crew-cards article{align-content:center;min-height:clamp(145px,27vh,205px);gap:6px;background:#06233eed;border:2px solid #36d6e5;border-radius:8px;padding:12px 5px;text-align:center}
+.mission-profile .crew-cards .player-card{background:#082d48;box-shadow:0 0 15px #29e5ec70}
+.mission-profile .crew-cards canvas{width:clamp(54px,7vw,89px);height:auto}
+.mission-profile .crew-cards b{font-size:clamp(15px,1.55vw,24px)}
+.mission-profile .crew-cards small{color:#c5dbe9;font:700 clamp(9px,1vw,12px) Consolas,monospace;text-transform:uppercase;letter-spacing:.055em}
+.mission-profile .profile-field{width:min(100%,368px);margin:clamp(24px,12vh,110px) 0 20px;font-size:13px;font-weight:700}
+.mission-profile .profile-field input{background:#05172880;border:0;border-bottom:2px solid #33d8e5;border-radius:0}
+.mission-profile .profile-field input:focus-visible{outline:2px solid #94f6ff;outline-offset:2px}
+.mission-profile .profile-actions{display:flex;justify-content:space-between;align-items:center;width:100%;gap:12px;margin-top:auto}
+.game .mission-profile .profile-actions button{background:#0b2134;color:#edfcff;border:1px solid #547281;font:700 13px Consolas,monospace;letter-spacing:.07em;text-transform:uppercase}
+.game .mission-profile .profile-actions .primary{border-color:#41dbe9;box-shadow:0 0 9px #36c9e064}
+.game .mission-profile .profile-actions button:hover{background:#153d53}

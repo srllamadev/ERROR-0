@@ -3,7 +3,7 @@ export const shipSheet=import.meta.env.BASE_URL+'ship-sprites.png'
 export const cuts={
  frame:[67,175,142,118], body:[74,307,198,134], wing:[40,590,281,96], tail:[61,732,148,105],
  engine:[450,486,327,145],tank:[496,54,221,99],power:[805,77,188,120],
- navigation:[836,296,134,197],reserve:[1058,318,88,169],shield:[71,46,138,102],burnt:[1065,624,77,153],ruptured:[1058,318,88,169]
+ navigation:[836,296,134,197],reserve:[1058,318,88,169],shield:[71,46,138,102],antenna:[61,732,148,105],cooling:[58,451,203,116],backup:[1071,70,65,123],burnt:[1065,624,77,153],ruptured:[1058,318,88,169]
 }
 // Coordinates in the assembled ship's 400 × 260 view.
 export const mounts=[
@@ -11,6 +11,7 @@ export const mounts=[
  ['engine','engine',277,99,117],['frame','body',133,65,181],
  ['frame','frame',48,111,125],['tank','tank',139,152,132],
  ['power','power',212,183,79],['navigation','navigation',88,178,48],
- ['reserve','reserve',296,158,43],['shield','shield',56,106,88],['burnt','burnt',268,176,31],['ruptured','ruptured',339,152,39]
+ ['reserve','reserve',296,158,43],['shield','shield',56,106,88],['antenna','antenna',192,18,61],['cooling','cooling',85,64,80],['backup','backup',252,74,32],['burnt','burnt',268,176,31],['ruptured','ruptured',339,152,39]
 ]
+
 

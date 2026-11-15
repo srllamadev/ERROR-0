@@ -7,6 +7,9 @@ export const zones=[
  {id:'navigation',name:'Depósito de navegación',part:'Computadora de navegación',x:22,z:13,color:'#9df5ba'},
  {id:'reserve',name:'Depósito de combustible',part:'Tanque auxiliar',x:4,z:-14,color:'#f5af71',extra:true},
  {id:'shield',name:'Restos del escudo',part:'Escudo térmico',x:16,z:17,color:'#e8a9ff',extra:true},
+ {id:'antenna',name:'Puesto de comunicaciones',part:'Antena de largo alcance',x:-1,z:-10,color:'#9fe0ff',extra:true},
+ {id:'cooling',name:'Restos del radiador',part:'Radiador auxiliar',x:-19,z:-2,color:'#a1efdb',extra:true},
+ {id:'backup',name:'Módulo de respaldo',part:'Batería de reserva',x:21,z:-5,color:'#ffe29f',extra:true},
  {id:'burnt',name:'Chatarra electrónica',part:'Batería quemada',x:-16,z:1,color:'#ef9292',scrap:true},
  {id:'ruptured',name:'Restos presurizados',part:'Depósito agrietado',x:18,z:3,color:'#ef9292',scrap:true}
 ]
@@ -21,6 +24,7 @@ export function canWalk(x,z,r=.42) {
    zones.every(zone=>Math.hypot(x-zone.x,z-zone.z)>1.65+r)
 }
 export const pickupPosition=zone=>[zone.x,zone.z+2.85]
+
 
 
 

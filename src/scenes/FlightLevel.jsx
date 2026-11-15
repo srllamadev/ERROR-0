@@ -68,7 +68,7 @@ export default function FlightLevel({profile,pilot,onExit,testMode=false}) {
     </div>)}
    </aside>
   </div>
-  <p className="flight-impact" role="status">{state.time<2?'Rumbo a la Tierra':state.time<6?'Alerta · Asteroide en trayectoria de impacto':blackout||leaking||drift||!state.seal?'Impacto de asteroide · Repara los sistemas de la Ares-IV':'Sistemas estabilizados'}</p>
+  <p className="flight-impact" role="status">{state.time<2?'Rumbo a la Tierra':state.time<6?'Alerta · Asteroide en trayectoria de impacto':blackout||leaking||drift||!state.seal?'Impacto de asteroide · Repara los sistemas de la ERROR - O':'Sistemas estabilizados'}</p>
   <p>{room?'E · '+roomNames[room]:'Acércate a una estación'} · WASD para moverte</p>
   {panel&&!result&&<div className="flight-console" role="dialog" aria-label="Terminal de reparación">
    <button className="secondary" onClick={()=>setPanel(null)}>Cerrar</button>
@@ -87,6 +87,7 @@ export default function FlightLevel({profile,pilot,onExit,testMode=false}) {
   {result&&<div className="veil"><section className="modal"><h2>{result==='success'?'Nivel 2 completado':'Viaje interrumpido'}</h2><p>{result==='success'?'Rumbo a la Tierra recuperado. Próxima etapa: llegada a la Tierra.':result}</p><p>Oxígeno {Math.ceil(state.oxygen)}% · Combustible {state.fuel} kg · Averías resueltas {[state.circuit,state.seal,state.course].filter(Boolean).length}/3</p><button className="primary" onClick={result==='success'?onExit:restart}>{result==='success'?'Volver al menú':'Reintentar nivel'}</button></section></div>}
  </section>
 }
+
 
 
 

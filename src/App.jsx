@@ -1,3 +1,4 @@
+import MenuBackground from './components/ui/MenuBackground'
 import React,{useEffect,useRef,useState} from 'react'
 import {Canvas,useFrame} from '@react-three/fiber'
 import {OrbitControls} from '@react-three/drei'
@@ -86,6 +87,7 @@ function LabPanel({s,totals}) {
 
 export default function App() {
  const s=useGameStore()
+ const [navigationBack,setNavigationBack]=useState('profile')
  const [pilot,setPilot]=useState('Alfa')
  const [destination,setDestination]=useState(null)
  const [help,setHelp]=useState(false)
@@ -119,22 +121,29 @@ export default function App() {
  const goal=!s.selected?'Selecciona la misión en el puesto 01':!s.validated?'Ensambla y valida el satélite en el puesto 02':'Dirígete a la plataforma de lanzamiento 04'
  return <main className={'game '+s.screen}>
   <div className="stage">
-   {(s.screen==='home'||s.screen==='space'||s.screen==='results') && <GameCanvas><SpaceScene ids={s.screen==='home'?['solar_std','xband']:s.ids} risky={s.risky}/></GameCanvas>}
+   {(s.screen==='space'||s.screen==='results') && <GameCanvas><SpaceScene ids={s.ids} risky={s.risky}/></GameCanvas>}
    {s.screen==='lab' && <GameCanvas><LaboratoryScene/></GameCanvas>}
   </div>
   <header className="topbar">
-   <div className="brand"><span className="brand-icon"><Orbit size={23}/></span><span>SPACEBOUND<small>INGENIERÍA ORBITAL</small></span></div>
+   <div className="brand"><span className="brand-icon"><Orbit size={23}/></span><span>ERROR - O<small>INGENIERÍA ORBITAL</small></span></div>
    <div className="top-status"><i/> {s.screen==='lab'?'LABORATORIO ACTIVO':s.screen==='navigation'?'MONITOR DE RUTA':s.screen==='planet'?'EXPEDICIÓN · PLANETA X':s.screen==='flight-test'?'NIVEL 2 · MODO DE PRUEBA':s.screen==='home'?'PROGRAMA DE OBSERVACIÓN':'MISIÓN 01 · TIERRA'}</div>
   </header>
-  {s.screen==='profile' && <MissionProfile onBack={()=>s.set({screen:'home'})} onConfirm={name=>{setPilot(name);s.set({screen:'navigation'})}}/>}
-  {s.screen==='navigation' && <NavigationMonitor onBack={()=>s.set({screen:'profile'})} onConfirm={target=>{setDestination(target);s.set({screen:'planet'})}}/>}
+  {s.screen==='profile' && <MissionProfile pilot={pilot} onBack={()=>s.set({screen:'home'})} onConfirm={name=>{setPilot(name);setNavigationBack('profile');s.set({screen:'navigation'})}}/>}
+  {s.screen==='navigation' && <NavigationMonitor onBack={()=>s.set({screen:navigationBack})} onConfirm={target=>{setDestination(target);s.set({screen:'planet'})}}/>}
   {s.screen==='flight-test' && <FlightLevel profile={profiles.light} pilot={pilot} onExit={()=>s.set({screen:'home'})} testMode/>}
   {s.screen==='planet' && <PlanetScene pilot={pilot} destination={destination} onExit={()=>s.set({screen:'home'})}/>}
-  {s.screen==='home' && <section className="hero">
-   <div className="kicker"><span/> SIMULADOR DE MISIONES ESPACIALES</div>
-   <h1>SPACE<span>BOUND</span></h1>
-   <p>Explora el Planeta X y recupera piezas entre los restos de antiguas expediciones.</p>
-   <div className="actions"><button className="primary" onClick={()=>s.set({screen:'profile'})}>Preparar misión <ArrowRight size={18}/></button><button className="secondary" onClick={()=>s.set({screen:'flight-test'})}>Probar Nivel 2</button><button className="secondary" onClick={returnToLab}>Laboratorio orbital</button><button className="secondary" onClick={()=>setHelp(true)}>Cómo jugar <MoveUpRight size={16}/></button></div>
+  {s.screen==='home' && <section className="ares-menu" aria-label="Menú principal de ERROR - O">
+   <MenuBackground/>
+   <div className="ares-menu-content">
+    <h1>ERROR<span> - O</span></h1>
+    <nav aria-label="Acciones del juego">
+     <button onClick={()=>s.set({screen:'profile'})}>Iniciar misión</button>
+     <button onClick={returnToLab}>Taller de cohetes</button>
+     <button onClick={()=>{setNavigationBack('home');s.set({screen:'navigation'})}}>Mapa planetario</button>
+     <button onClick={()=>setHelp(true)}>Opciones</button>
+    </nav>
+    <button className="ares-test" onClick={()=>s.set({screen:'flight-test'})}>Probar Nivel 2</button>
+   </div>
   </section>}
   {s.screen==='lab' && <>
    <section className="objective"><span className="kicker">UBICACIÓN 01</span><h2>Laboratorio orbital</h2><p>{goal}</p></section>
@@ -169,6 +178,12 @@ export default function App() {
   </Modal>}
  </main>
 }
+
+
+
+
+
+
 
 
 

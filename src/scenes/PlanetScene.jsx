@@ -97,7 +97,7 @@ function World({carrying,installed,stock,onNear,paused,markers,zones,destination
   <mesh position={[0,.07,0]}><cylinderGeometry args={[2.24,2.39,.14,32]}/><meshStandardMaterial color="#38474f" metalness={.54}/></mesh>
   <mesh position={[0,.15,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[1.91,1.98,40]}/><meshBasicMaterial color="#84eac9"/></mesh>
   <PlanetRocket ids={installed}/>
-  <Html center position={[0,1.35,0]} style={{pointerEvents:'none'}}><div className="station-tag">{installed.includes('frame')?'Campamento · Plataforma':'Ares-IV · Dañada'}</div></Html>
+  <Html center position={[0,1.35,0]} style={{pointerEvents:'none'}}><div className="station-tag">{installed.includes('frame')?'Campamento · Plataforma':'ERROR - O · Dañada'}</div></Html>
   <Crew onNear={onNear} carrying={carrying} installed={stock} paused={paused} markers={markers} zones={zones}/>
  </>
 }
@@ -166,7 +166,7 @@ export default function PlanetScene({onExit,destination,pilot}) {
   {boarding && <div className="boarding-film" role="status">
    <div className="boarding-frame">
     <div className="boarding-opening">
-     <div className="boarding-console"><span className="kicker">ARES-IV</span><b>Entrando a la nave</b><small>Iniciando diagnóstico de sistemas</small></div>
+     <div className="boarding-console"><span className="kicker">ERROR - O</span><b>Entrando a la nave</b><small>Iniciando diagnóstico de sistemas</small></div>
      <div className="boarding-door boarding-left" aria-hidden="true"><i/></div>
      <div className="boarding-door boarding-right" aria-hidden="true"><i/></div>
     </div>
@@ -174,7 +174,7 @@ export default function PlanetScene({onExit,destination,pilot}) {
    </div>
   </div>}
   {design && <div className="veil"><section className="modal wide planet-workshop" role="dialog" aria-modal="true" aria-label="Diseño de la nave">
-   <header><div><span className="kicker">PLATAFORMA · {destination.name.toUpperCase()}</span><h2>Diagnóstico de la Ares-IV</h2></div><button className="secondary" onClick={()=>setDesign(false)}>Cerrar</button></header>
+   <header><div><span className="kicker">PLATAFORMA · {destination.name.toUpperCase()}</span><h2>Diagnóstico de la ERROR - O</h2></div><button className="secondary" onClick={()=>setDesign(false)}>Cerrar</button></header>
    <p aria-live="polite">{assembled===required.length?'Todos los módulos obligatorios están instalados.':`Faltan ${required.length-assembled} módulos obligatorios. Revisa cuáles quedan por recuperar o instalar.`}</p>
    <div className="builder"><AssemblyArt ids={installed} labels={zones} stock={stock} onToggle={toggleModule}/>
     <div className="parts">{zones.map(zone=><button className={'part '+(installed.includes(zone.id)?'installed':'')} key={zone.id} disabled={!stock.includes(zone.id)} aria-pressed={installed.includes(zone.id)} onClick={()=>toggleModule(zone.id)}><PartArt id={zone.id}/><b>{zone.part}<small>{zone.scrap?'Chatarra defectuosa':'Obligatoria para esta ruta'}</small></b><span>{installed.includes(zone.id)?'Retirar':stock.includes(zone.id)?'Instalar':'Por recuperar'}</span></button>)}</div>
@@ -197,6 +197,7 @@ export default function PlanetScene({onExit,destination,pilot}) {
   <button className="secondary planet-exit" onClick={onExit}><ArrowLeft size={15}/> Menú</button>
  </>
 }
+
 
 
 

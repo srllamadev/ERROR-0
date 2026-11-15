@@ -21,14 +21,16 @@ function CrewPortrait({index}) {
  },[index])
  return <canvas ref={canvas} width={89} height={91} aria-hidden="true"/>
 }
-export default function MissionProfile({onBack,onConfirm}) {
- const [name,setName]=useState('')
- return <form className="navigation-monitor" onSubmit={e=>{e.preventDefault();onConfirm(name.trim()||'Alfa')}}>
- <span className="kicker">ARES-IV · TRIPULACIÓN</span><h1>Prepara el equipo</h1>
- <div className="crew-cards">{[name.trim()||'Alfa','Beta','Gamma'].map((member,i)=><article key={i}><CrewPortrait index={i}/><b>{member}</b><small>{['Ingeniería','Exploración','Pilotaje'][i]}</small></article>)}</div>
+export default function MissionProfile({onBack,onConfirm,pilot}) {
+ const [name,setName]=useState(pilot==='Alfa'?'':pilot)
+ return <form className="mission-profile" onSubmit={e=>{e.preventDefault();onConfirm(name.trim()||'Alfa')}}>
+ <header><span className="kicker">ERROR - O · TRIPULACIÓN</span><h1>Prepara el equipo</h1></header>
+ <div className="crew-cards">{[name.trim()||'Alfa','Beta','Gamma'].map((member,i)=><article key={i} className={i===0?'player-card':undefined}><CrewPortrait index={i}/><b>{member}</b><small>{['Ingeniería','Exploración','Pilotaje'][i]}</small></article>)}</div>
  <label className="profile-field">Nombre de tu personaje<input maxLength={24} value={name} onChange={e=>setName(e.target.value)} placeholder="Alfa"/></label>
- <div className="actions"><button type="button" className="secondary" onClick={onBack}>Volver</button><button className="primary">Abrir navegación</button></div>
+ <div className="profile-actions"><button type="button" className="secondary" onClick={onBack}>Volver</button><button className="primary">Abrir navegación</button></div>
  </form>
 }
+
+
 
 
