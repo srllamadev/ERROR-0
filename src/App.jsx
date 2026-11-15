@@ -7,6 +7,8 @@ import SpaceScene from './scenes/SpaceScene'
 import MissionProfile from './components/ui/MissionProfile'
 import NavigationMonitor from './components/ui/NavigationMonitor'
 import PlanetScene from './scenes/PlanetScene'
+import FlightLevel from './scenes/FlightLevel'
+import {profiles} from './utils/flight'
 import Ship from './components/spaceship/Ship'
 import GameCanvas from './components/ui/GameCanvas'
 import {stations} from './components/environment/stations'
@@ -122,16 +124,17 @@ export default function App() {
   </div>
   <header className="topbar">
    <div className="brand"><span className="brand-icon"><Orbit size={23}/></span><span>SPACEBOUND<small>INGENIERÍA ORBITAL</small></span></div>
-   <div className="top-status"><i/> {s.screen==='lab'?'LABORATORIO ACTIVO':s.screen==='navigation'?'MONITOR DE RUTA':s.screen==='planet'?'EXPEDICIÓN · PLANETA X':s.screen==='home'?'PROGRAMA DE OBSERVACIÓN':'MISIÓN 01 · TIERRA'}</div>
+   <div className="top-status"><i/> {s.screen==='lab'?'LABORATORIO ACTIVO':s.screen==='navigation'?'MONITOR DE RUTA':s.screen==='planet'?'EXPEDICIÓN · PLANETA X':s.screen==='flight-test'?'NIVEL 2 · MODO DE PRUEBA':s.screen==='home'?'PROGRAMA DE OBSERVACIÓN':'MISIÓN 01 · TIERRA'}</div>
   </header>
   {s.screen==='profile' && <MissionProfile onBack={()=>s.set({screen:'home'})} onConfirm={name=>{setPilot(name);s.set({screen:'navigation'})}}/>}
   {s.screen==='navigation' && <NavigationMonitor onBack={()=>s.set({screen:'profile'})} onConfirm={target=>{setDestination(target);s.set({screen:'planet'})}}/>}
+  {s.screen==='flight-test' && <FlightLevel profile={profiles.light} pilot={pilot} onExit={()=>s.set({screen:'home'})} testMode/>}
   {s.screen==='planet' && <PlanetScene pilot={pilot} destination={destination} onExit={()=>s.set({screen:'home'})}/>}
   {s.screen==='home' && <section className="hero">
    <div className="kicker"><span/> SIMULADOR DE MISIONES ESPACIALES</div>
    <h1>SPACE<span>BOUND</span></h1>
    <p>Explora el Planeta X y recupera piezas entre los restos de antiguas expediciones.</p>
-   <div className="actions"><button className="primary" onClick={()=>s.set({screen:'profile'})}>Preparar misión <ArrowRight size={18}/></button><button className="secondary" onClick={returnToLab}>Laboratorio orbital</button><button className="secondary" onClick={()=>setHelp(true)}>Cómo jugar <MoveUpRight size={16}/></button></div>
+   <div className="actions"><button className="primary" onClick={()=>s.set({screen:'profile'})}>Preparar misión <ArrowRight size={18}/></button><button className="secondary" onClick={()=>s.set({screen:'flight-test'})}>Probar Nivel 2</button><button className="secondary" onClick={returnToLab}>Laboratorio orbital</button><button className="secondary" onClick={()=>setHelp(true)}>Cómo jugar <MoveUpRight size={16}/></button></div>
   </section>}
   {s.screen==='lab' && <>
    <section className="objective"><span className="kicker">UBICACIÓN 01</span><h2>Laboratorio orbital</h2><p>{goal}</p></section>
@@ -166,6 +169,7 @@ export default function App() {
   </Modal>}
  </main>
 }
+
 
 
 

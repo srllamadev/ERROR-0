@@ -39,7 +39,7 @@ export function frames(image,index) {
  return result
 }
 const accents=['#ff9f69','#71caff','#83ecc2']
-export default function LlamaSprite({body,index=0,carrying}) {
+export default function LlamaSprite({body,index=0,carrying,spawn}) {
  const sheet=useTexture(import.meta.env.BASE_URL+'llama-sheet.jpeg')
  const textures=useMemo(()=>frames(sheet.image,index),[sheet,index])
  const sprite=useRef()
@@ -50,7 +50,7 @@ export default function LlamaSprite({body,index=0,carrying}) {
   const list=textures[mode]
   sprite.current.material.map=list[Math.floor(clock.elapsedTime*(moving?12:3)+index)%list.length]
  })
- return <group ref={body} position={[-index*.85,0,5+index*.8]}>
+ return <group ref={body} position={spawn??[-index*.85,0,5+index*.8]}>
   <sprite ref={sprite} position={[0,1.23,0]} scale={[2.42,2.42,1]}>
    <spriteMaterial map={textures.idle[0]} transparent alphaTest={.18} depthWrite={false} toneMapped={false}/>
   </sprite>
@@ -58,6 +58,7 @@ export default function LlamaSprite({body,index=0,carrying}) {
   {carrying && <group position={[0,1.12,-.52]} renderOrder={-1}><SalvagePart id={carrying}/></group>}
  </group>
 }
+
 
 
 

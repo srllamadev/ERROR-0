@@ -1,0 +1,78 @@
+import React,{useEffect,useState} from 'react'
+import {advanceFlight,beginFlight,flightResult} from '../utils/flight'
+
+import HullPatch from '../components/ui/HullPatch'
+import WirePanel from '../components/ui/WirePanel'
+import FlightInterior from './FlightInterior'
+const roomNames={engineering:"Ingeniería",oxygen:"Brecha del casco",navigation:"Cabina"}
+export default function FlightLevel({profile,pilot,onExit,testMode=false}) {
+ const [state,setState]=useState(()=>beginFlight(profile))
+ const [room,setRoom]=useState(null)
+ const [attempt,setAttempt]=useState(0)
+ const [panel,setPanel]=useState(null)
+ const [isolated,setIsolated]=useState(false)
+ const [links,setLinks]=useState([])
+ const [heading,setHeading]=useState(20)
+
+ const result=flightResult(state)
+
+ useEffect(()=>{
+  if(result)return
+  const timer=setInterval(()=>{
+   setState(current=>flightResult(current)?current:advanceFlight(current,.25))
+  },250)
+  return ()=>clearInterval(timer)
+ },[result])
+ useEffect(()=>{
+  const down=e=>{
+   const key=e.key.toLowerCase()
+
+   if(key==='escape')setPanel(null)
+   if(key==='e' && room && !panel && !result && !e.repeat){setPanel(room)}
+  }
+  window.addEventListener('keydown',down)
+  return ()=>window.removeEventListener('keydown',down)
+ },[room,result,panel])
+ const restart=()=>{setAttempt(current=>current+1);setState(beginFlight(profile));setRoom(null);setPanel(null);setIsolated(false);setLinks([]);setHeading(20)}
+ const blackout=state.time>=6&&!state.circuit
+ const leaking=state.time>=15&&!state.seal
+ const drift=state.time>=23&&!state.course
+ const systems=[
+  ['engineering','Energía',blackout,state.circuit,'Circuito principal'],
+  ['oxygen','Soporte vital',leaking,state.seal,'Presión del casco'],
+  ['navigation','Navegación',drift,state.course,'Rumbo terrestre']
+ ]
+ const canSteer=(!blackout||state.battery>0)&&!state.support
+ return <section className="flight-level">
+  <header><span className="kicker">NIVEL 2 · VIAJE A LA TIERRA</span><h2>Emergencia a bordo</h2><p>{pilot} · {profile.name}</p>{testMode && <button className="secondary flight-test-exit" onClick={onExit}>Volver al menú</button>}</header>
+  <div className="flight-meters"><b>Oxígeno {Math.ceil(state.oxygen)}%</b><b>Reserva eléctrica {Math.ceil(state.battery)} s</b><b>Combustible {state.fuel} kg</b><b>Ventana de rumbo {Math.max(0,Math.ceil(78-state.time))} s</b></div>
+  <div className="flight-layout"><FlightInterior key={attempt} paused={Boolean(panel||result)} time={state.time} onNear={setRoom}
+   alarms={{engineering:blackout,oxygen:leaking,navigation:drift}}/>
+   <aside className="flight-diagnostics" aria-label="Monitor de sistemas">
+    <h3>Estado de sistemas</h3>
+    {systems.map(([id,name,fault,repaired,detail])=><div key={id} className={'flight-monitor '+(fault?'fault':'normal')} aria-live="polite">
+     <span>{name}</span><strong><i/>{fault?'AVERÍA':repaired?'REPARADO':'OPERATIVO'}</strong><small>{detail}</small>
+    </div>)}
+   </aside>
+  </div>
+  <p className="flight-impact" role="status">{state.time<2?'Rumbo a la Tierra':state.time<6?'Alerta · Asteroide en trayectoria de impacto':blackout||leaking||drift||!state.seal?'Impacto de asteroide · Repara los sistemas de la Ares-IV':'Sistemas estabilizados'}</p>
+  <p>{room?'E · '+roomNames[room]:'Acércate a una estación'} · WASD para moverte</p>
+  {panel&&!result&&<div className="flight-console" role="dialog" aria-label="Terminal de reparación">
+   <button className="secondary" onClick={()=>setPanel(null)}>Cerrar</button>
+   {panel==='engineering'&&<><h3>Distribución eléctrica</h3><p>{state.circuit?'Circuito restaurado.':blackout?'Protección de distribución activada.':'Circuito estable.'}</p>
+    {blackout&&<><WirePanel isolated={isolated} links={links} onIsolate={()=>setIsolated(true)}
+      onConnect={id=>setLinks(current=>current.includes(id)?current:[...current,id])}
+      onRestore={()=>setState(current=>({...current,circuit:true,support:false}))}/>
+      <button className="secondary" onClick={()=>setState(current=>({...current,support:!current.support}))}>{state.support?'Devolver energía a navegación':'Priorizar soporte vital'}</button></>}   </>}
+   {panel==='oxygen'&&<><h3>Brecha del casco</h3><p>{leaking?'El impacto abrió una brecha. Coloca el parche de emergencia para detener la fuga.':state.seal?'Casco sellado.':'La fuga todavía no se ha activado.'}</p>{leaking && <HullPatch onSeal={()=>setState(current=>({...current,seal:true}))}/>}</>}
+   {panel==='navigation'&&<><h3>Corrección de rumbo</h3><p>{canSteer?'Alinea el rumbo a 60° y consume 20 kg de combustible.':'Navegación sin alimentación. Revisa ingeniería.'}</p><label>Rumbo {heading}° <input type="range" min="0" max="100" step="5" value={heading} onChange={e=>setHeading(Number(e.target.value))}/></label><button className="primary" disabled={!drift||!canSteer||heading!==60||state.fuel<20} onClick={()=>setState(current=>({...current,course:true,fuel:current.fuel-20}))}>Ejecutar maniobra</button></>}
+   
+  </div>}
+  {result&&<div className="veil"><section className="modal"><h2>{result==='success'?'Nivel 2 completado':'Viaje interrumpido'}</h2><p>{result==='success'?'Rumbo a la Tierra recuperado. Próxima etapa: llegada a la Tierra.':result}</p><p>Oxígeno {Math.ceil(state.oxygen)}% · Combustible {state.fuel} kg · Averías resueltas {[state.circuit,state.seal,state.course].filter(Boolean).length}/3</p><button className="primary" onClick={result==='success'?onExit:restart}>{result==='success'?'Volver al menú':'Reintentar nivel'}</button></section></div>}
+ </section>
+}
+
+
+
+
+

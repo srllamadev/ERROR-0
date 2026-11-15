@@ -25,7 +25,7 @@ export function AssemblyArt({ids,onToggle,stock,labels}) {
   </svg>
  </div>
 }
-export function PlanetLaunch({destination,onExit,failure,onRetry}) {
+export function PlanetLaunch({destination,onContinue,failure,onRetry}) {
  const [elapsed,setElapsed]=useState(0)
  useEffect(()=>{
   const start=performance.now()
@@ -42,10 +42,11 @@ export function PlanetLaunch({destination,onExit,failure,onRetry}) {
   <div className="launch-capsule"><svg viewBox="0 0 100 112" aria-hidden="true"><path d="M50 8 66 36 66 70 84 90H16L34 70V36Z" fill="#c6ecff" stroke="#62eaff" strokeWidth="2"/><circle cx="50" cy="39" r="8" fill="#142e56"/><path className="launch-exhaust" d="M39 90H61L50 110Z" fill="#52f4ff"/></svg></div>
   <div className="launch-flash" aria-hidden="true"/><div className="launch-caption"><span className="kicker">ARES-IV · {destination.name}</span>
    <h2>{result?(failure?'Nave destruida':'Nivel completado'):elapsed<3?'Despegue en '+Math.ceil(3-elapsed):elapsed<4?'Ignición':failure?'Pérdida de la nave':'Salida de la zona'}</h2>
-   {result&&failure&&<><p>{failure}</p><button className="primary" onClick={onRetry}>Volver al taller</button></>}{result&&!failure&&<><p>La tripulación ha despegado desde {destination.name}.</p><button className="primary" onClick={onExit}>Volver al menú</button></>}
+   {result&&failure&&<><p>{failure}</p><button className="primary" onClick={onRetry}>Volver al taller</button></>}{result&&!failure&&<><p>La tripulación ha despegado desde {destination.name}.</p><button className="primary" onClick={onContinue}>Continuar al Nivel 2</button></>}
   </div>
  </section>
 }
+
 
 
 

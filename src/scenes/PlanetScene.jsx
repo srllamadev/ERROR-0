@@ -7,6 +7,8 @@ import PlanetRocket,{SalvagePart} from '../components/spaceship/PlanetRocket'
 import {reviewDesign} from '../utils/planetEngineering'
 import LlamaSprite from '../components/player/LlamaSprite'
 import PlanetMinimap from '../components/ui/PlanetMinimap'
+import FlightLevel from './FlightLevel'
+import {profiles} from '../utils/flight'
 import {PartArt,AssemblyArt,PlanetLaunch} from '../components/ui/AresArt'
 import GameCanvas from '../components/ui/GameCanvas'
 import {Box} from '../components/spaceship/Ship'
@@ -105,6 +107,8 @@ export default function PlanetScene({onExit,destination,pilot}) {
  const [stock,setStock]=useState([]),[design,setDesign]=useState(false)
  const [boarding,setBoarding]=useState(false)
  const greeted=useRef(false)
+ const [profile,setProfile]=useState(profiles.light)
+ const [inFlight,setInFlight]=useState(false)
  const [launch,setLaunch]=useState(false)
  const [oxygen,setOxygen]=useState(100)
  const dead=oxygen===0
@@ -148,7 +152,8 @@ export default function PlanetScene({onExit,destination,pilot}) {
   window.addEventListener('keydown',interact)
   return ()=>window.removeEventListener('keydown',interact)
  },[action,near,carrying,design,dead,boarding,launch])
- if(launch) return <PlanetLaunch destination={destination} failure={launch===true?null:launch} onRetry={()=>setLaunch(false)} onExit={onExit}/>
+ if(inFlight)return <FlightLevel profile={profile} pilot={pilot} onExit={onExit}/>
+ if(launch) return <PlanetLaunch destination={destination} onContinue={()=>setInFlight(true)} failure={launch===true?null:launch} onRetry={()=>setLaunch(false)} onExit={onExit}/>
  return <>
   <div className="stage"><GameCanvas><Canvas orthographic camera={{position:[10,13,20],zoom:43,far:130}} dpr={[1,1.5]}><World onNear={setNear} carrying={carrying} installed={installed} stock={stock} paused={design||dead||boarding} markers={markers} zones={zones} destination={destination}/></Canvas></GameCanvas></div>
   <section className="objective planet-objective"><span className="kicker"><Mountain size={14}/> RUTA · {destination.name.toUpperCase()}</span><h2>{destination.name} · {destination.terrain}</h2><p>{review.ready?'Nave validada':recovered===required.length?'Completa el ensamblaje en la plataforma':cargo?'Regresa al campamento para depositar la pieza':'Explora los restos y recupera componentes'}</p></section>
@@ -160,7 +165,7 @@ export default function PlanetScene({onExit,destination,pilot}) {
   {dead && <div className="veil"><section className="modal"><h2>Oxígeno agotado</h2><p>La expedición terminó. El campamento repone oxígeno durante la exploración.</p><button className="primary" onClick={onExit}>Volver al menú</button></section></div>}
   {boarding && <div className="boarding-film" role="status">
 
-   <div className="boarding-door boarding-left"/><div className="boarding-door boarding-right"/>
+   <div className="boarding-door boarding-left" aria-hidden="true"><i/></div><div className="boarding-door boarding-right" aria-hidden="true"><i/></div>
    <div className="boarding-console"><span className="kicker">ARES-IV</span><b>Entrando a la nave</b><small>Iniciando diagnóstico de sistemas</small></div>
 
   </div>}
@@ -171,7 +176,8 @@ export default function PlanetScene({onExit,destination,pilot}) {
     <div className="parts">{zones.map(zone=><button className={'part '+(installed.includes(zone.id)?'installed':'')} key={zone.id} disabled={!stock.includes(zone.id)} aria-pressed={installed.includes(zone.id)} onClick={()=>toggleModule(zone.id)}><PartArt id={zone.id}/><b>{zone.part}<small>{zone.scrap?'Chatarra defectuosa':'Obligatoria para esta ruta'}</small></b><span>{installed.includes(zone.id)?'Retirar':stock.includes(zone.id)?'Instalar':'Por recuperar'}</span></button>)}</div>
    </div>
    <p>Masa {review.mass} kg · Empuje {review.thrust} N · Combustible {review.fuel} kg · Margen eléctrico {review.watts} W</p>
-   {review.ready && <button className="primary" onClick={()=>setLaunch(true)}>Iniciar despegue</button>}
+   <fieldset className="flight-options"><legend>Configuración para el viaje a la Tierra</legend>{Object.values(profiles).map(option=><label key={option.name}><input type="radio" name="flight-profile" checked={profile===option} disabled={review.thrust>0 && review.thrust<=(review.mass+option.mass)*3.4} onChange={()=>setProfile(option)}/>{option.name} · +{option.mass} kg · {option.battery} s de reserva · {option.fuel} kg para maniobrar</label>)}</fieldset>
+   {review.ready && review.thrust>(review.mass+profile.mass)*3.4 && <button className="primary" onClick={()=>setLaunch(true)}>Iniciar despegue</button>}
    {!review.ready && installed.length>0 && <button className="secondary risk" onClick={()=>setLaunch(review.faults[0]??('Falló la prueba de vuelo: '+review.checks.filter(([,ok])=>!ok).map(([label])=>label).join(', ')+'.'))}>Simular despegue defectuoso</button>}
    {review.faults.map(fault=><p key={fault} className="bad">{fault}</p>)}
    <h3>{review.ready?'Nave validada':'Revisión técnica'}</h3>
@@ -187,6 +193,8 @@ export default function PlanetScene({onExit,destination,pilot}) {
   <button className="secondary planet-exit" onClick={onExit}><ArrowLeft size={15}/> Menú</button>
  </>
 }
+
+
 
 
 
