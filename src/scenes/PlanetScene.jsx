@@ -2,7 +2,7 @@ import React,{useEffect,useMemo,useRef,useState} from 'react'
 import {Canvas,useFrame} from '@react-three/fiber'
 import {Html} from '@react-three/drei'
 import {MathUtils,Vector3} from 'three'
-import {ArrowLeft,Mountain,Package} from 'lucide-react'
+import {ArrowLeft,Droplet,Mountain,Package,Rocket,Zap} from 'lucide-react'
 import PlanetRocket,{SalvagePart} from '../components/spaceship/PlanetRocket'
 import {reviewDesign} from '../utils/planetEngineering'
 import LlamaSprite from '../components/player/LlamaSprite'
@@ -156,9 +156,9 @@ export default function PlanetScene({onExit,destination,pilot}) {
  if(launch) return <PlanetLaunch destination={destination} onContinue={()=>setInFlight(true)} failure={launch===true?null:launch} onRetry={()=>setLaunch(false)} onExit={onExit}/>
  return <>
   <div className="stage"><GameCanvas><Canvas orthographic camera={{position:[10,13,20],zoom:43,far:130}} dpr={[1,1.5]}><World onNear={setNear} carrying={carrying} installed={installed} stock={stock} paused={design||dead||boarding} markers={markers} zones={zones} destination={destination}/></Canvas></GameCanvas></div>
-  <section className="objective planet-objective"><span className="kicker"><Mountain size={14}/> RUTA · {destination.name.toUpperCase()}</span><h2>{destination.name} · {destination.terrain}</h2><p>{review.ready?'Nave validada':recovered===required.length?'Completa el ensamblaje en la plataforma':cargo?'Regresa al campamento para depositar la pieza':'Explora los restos y recupera componentes'}</p></section>
-  <div className="survival-hud" aria-label="Soporte vital">{[['Energía',Math.min(100,Math.max(0,Math.round((review.watts+40)/1.8)))],['Oxígeno',oxygen],['Nave',Math.round(assembled/required.length*100)]].map(([label,value])=><label key={label}>{label} <b>{value}%</b><progress max="100" value={value}/></label>)}</div>
-  <PlanetMinimap markers={markers} zones={zones} stock={stock} carrying={carrying}/>
+  <div className="planet-nav-hud"><section className="objective planet-objective"><span className="kicker"><Mountain size={14}/> RUTA · {destination.name.toUpperCase()}</span><h2>{destination.name} · {destination.terrain}</h2><p>{review.ready?'Nave validada':recovered===required.length?'Completa el ensamblaje en la plataforma':cargo?'Regresa al campamento para depositar la pieza':'Explora los restos y recupera componentes'}</p></section><PlanetMinimap markers={markers} zones={zones} stock={stock} carrying={carrying}/></div>
+  <div className="survival-hud" aria-label="Soporte vital">{[['Oxígeno',oxygen,Droplet],['Energía',Math.min(100,Math.max(0,Math.round((review.watts+40)/1.8))),Zap],['Nave',Math.round(assembled/required.length*100),Rocket]].map(([label,value,Icon])=><label key={label} data-critical={label==='Oxígeno' && value<=25}><span><Icon size={15} aria-hidden="true"/>{label}</span> <b>{value}%</b><progress aria-label={label} max="100" value={value}/></label>)}</div>
+
   <aside className="planet-inventory"><span className="kicker"><Package size={14}/> {pilot}</span><b>{recovered} / {required.length} piezas obligatorias</b><p>{cargo?'Transportando: '+cargo.part:'Carga disponible'}</p></aside>
   {action && !design && !dead && !boarding && <div className="interact"><kbd>E</kbd><span><b>{action}</b><small>Presiona E para interactuar</small></span></div>}
   <footer className="controls"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Mover</span><span><kbd>E</kbd> Interactuar</span></footer>
@@ -197,6 +197,9 @@ export default function PlanetScene({onExit,destination,pilot}) {
   <button className="secondary planet-exit" onClick={onExit}><ArrowLeft size={15}/> Menú</button>
  </>
 }
+
+
+
 
 
 
