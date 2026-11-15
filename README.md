@@ -57,3 +57,5 @@ The game uses React, Vite, Three.js, React Three Fiber, Drei, and Zustand.
 - `src/scenes/` contains the environment and flight scenes. `src/utils/` contains the engineering and mission logic.
 
 Run `npm run build` to generate `dist/`. Use `npm exec -- vite preview` to preview the build locally. Live distances require a server that provides `/api/horizons-distance`. If the endpoint or JPL is unavailable, the game displays the saved Horizons distances and their original epoch.
+
+PUBLIC LINK - https://error-0.shelly-cls133.workers.dev
